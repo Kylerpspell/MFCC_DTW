@@ -15,18 +15,18 @@ from fastdtw import fastdtw
 participantDirectory = "MelFreq-DTW/participantDirectory"
 
 
-def splitAudio(filePath):
-    stereo_audio = AudioSegment.from_file(filePath, format="wav")
+def splitAudio(file_path):
+    stereo_audio = AudioSegment.from_file(file_path, format="wav")
     mono_audios = stereo_audio.split_to_mono()
     # Left(Participant)
-    mono_audios[0].export(filePath.replace("stereo", "left"), format="wav")
+    mono_audios[0].export(file_path.replace("stereo", "left"), format="wav")
     # Right(Model)
-    mono_audios[1].export(filePath.replace("stereo", "right"), format="wav")
-    return (filePath.replace("stereo", "left"), filePath.replace("stereo", "right"))
+    mono_audios[1].export(file_path.replace("stereo", "right"), format="wav")
+    return (file_path.replace("stereo", "left"), file_path.replace("stereo", "right"))
 
 
-def mfccDtw(filePath):
-    participant, model = splitAudio(filePath)
+def mfcc_dtw(file_path):
+    participant, model = splitAudio(file_path)
 
     # Generate MFCC's from audio data
     model_y, model_sr = librosa.load(model)
@@ -48,11 +48,11 @@ def mfccDtw(filePath):
     # DTW
     distance, path = fastdtw(mfccs_pt.T, mfccs_model.T, dist=euclidean)
     # Writes total distance to file
-    with open(filePath.replace("stereo.wav", "distance.csv"), "a") as out_d:
+    with open(file_path.replace("stereo.wav", "distance.csv"), "a") as out_d:
         csv_model = csv.writer(out_d)
         csv_model.writerow(["DTW Distance: ", distance])
-    # Writes path to file (for making animation)
-    with open(filePath.replace("stereo.wav", "path.csv"), "a") as out_participant:
+    # Writes path to file (for making graphics)
+    with open(file_path.replace("stereo.wav", "path.csv"), "a") as out_participant:
         csv_model = csv.writer(out_participant)
         for i in path:
             csv_model.writerow(i)
@@ -82,7 +82,7 @@ def mfccDtw(filePath):
     plt.ylabel("Seconds Ahead (s)")
     plt.title("Frame Lag")
     plt.axhline(y=0, color="black")
-    plt.savefig(filePath.replace("stereo.wav", "lag.png"))
+    plt.savefig(file_path.replace("stereo.wav", "lag.png"))
     plt.clf()
 
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     for dirs, subdirs, files in os.walk("MelFreq-DTW/participantDirectory/"):
         for file in files:
             if file.endswith("stereo.wav"):
-                mfccDtw(os.path.join(dirs, file))
+                mfcc_dtw(os.path.join(dirs, file))
 
     for dirs, subdirs, files in os.walk(participantDirectory):
         for dir in subdirs:
